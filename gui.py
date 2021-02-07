@@ -10,79 +10,224 @@ import tkinter as tk
 import pandas as pd
 import os
 import ast
+from PIL import Image, ImageTk
 
-database_dir = '/Users/haroonpopal/Google_Drive/misc/ariana/database_management/'
+
+database_dir = '/Users/haroonpopal/Google_Drive/misc/ariana/ArianaGUI/'
 os.chdir(database_dir)
 
 
 # Import data
-database = pd.read_csv('test_database.csv')
+database = pd.read_csv('../test_database.csv')
 
-cd = database.iloc[0]
-notes_dict = ast.literal_eval(cd['notes'])
+client = database.iloc[0]
+notes_dict = ast.literal_eval(client['notes'])
 notes = list(notes_dict.items())
 
-class ClientProfile:
-    def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("some application")
-        #header = Frame(win, bg='green', height=30)
-        #header.pack(fill='both') #, side='top')
-        ci_sec = tk.Frame()
+
+
+LARGEFONT =("Verdana", 35) 
+
+class tkinterApp(tk.Tk): 
+	
+	# __init__ function for class tkinterApp 
+	def __init__(self, *args, **kwargs): 
+		
+		# __init__ function for class Tk 
+		tk.Tk.__init__(self, *args, **kwargs) 
+		
+		# creating a container 
+		container = tk.Frame(self) 
+		container.pack(side = "top", fill = "both", expand = True) 
+
+		container.grid_rowconfigure(0, weight = 1) 
+		container.grid_columnconfigure(0, weight = 1) 
+
+		# initializing frames to an empty array 
+		self.frames = {} 
+
+		# iterating through a tuple consisting 
+		# of the different page layouts 
+		for F in (StartPage, ClientDatabase, ClientProfile): 
+
+			frame = F(container, self) 
+
+			# initializing frame of that object from 
+			# startpage, page1, page2 respectively with 
+			# for loop 
+			self.frames[F] = frame 
+
+			frame.grid(row = 0, column = 0, sticky ="nsew") 
+
+		self.show_frame(StartPage) 
+
+	# to display the current frame passed as 
+	# parameter 
+	def show_frame(self, cont): 
+		frame = self.frames[cont] 
+		frame.tkraise() 
+
+# first window frame startpage 
+
+class StartPage(tk.Frame): 
+    def __init__(self, parent, controller): 
+        tk.Frame.__init__(self, parent) 
+		
+		# label of frame Layout 2 
+        #title = tk.Label(self, text ="Ariana Insurance", font = LARGEFONT) 
+        #img = tk.PhotoImage(file="../logo.png")     
+        #logo = tk.Label(image=img)
+        #parent.create_image(20,20, anchor='nw', image=img)
+		
+		# putting the grid in its place by using 
+		# grid 
+        #title.grid(row = 0, padx = 10, pady = 10) 
+        
+        # Create a photoimage object of the image in the path
+        #image1 = Image.open("../logo.png")
+        #test = ImageTk.PhotoImage(image1)
+        
+        #label1 = tk.Label(image=test)
+        #label1.image = test
+        image = Image.open("../logo.png")
+        photo = ImageTk.PhotoImage(image)
+        
+        label = tk.Label(self, image = photo)
+        label.image = photo
+        label.grid(row=0)
+        # Position image
+        #label1.place(x=20, y=20)
+        #label1.grid(row=1)
+        #logo.pack()
+
+
+	
+		# putting the button in its place by 
+		# using grid 
+
+		## button to show frame 2 with text layout2 
+        button1 = tk.Button(self, text ="Clientele Database", 
+		command = lambda : controller.show_frame(ClientDatabase)) 
+	
+		# putting the button in its place by 
+		# using grid 
+        button1.grid(row = 2, padx = 10, pady = 10)
+        
+        
+
+class ClientDatabase(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        
+        title = tk.Label(self, text ="Clientele Database", font = LARGEFONT) 
+        title.grid(row = 0, columnspan=2, sticky="ew", padx = 10, pady = 10) 
+        
+        clients_cell = []
+        clients_pols = []
+        for i in range(len(database)):
+            self.client=database.iloc[i]
+            clients_cell.append(tk.Label(self, 
+                                         text=self.client['last_name']+', '+self.client['first_name']))
+            clients_cell[i].grid(row=i+1, column=0)
+            clients_pols.append(tk.Button(self, text=self.client['policy_type'],
+                                          command = self.load_client_info))
+            clients_pols[i].grid(row=i+1, column=1)
+        
+    def load_client_info(self):
+        self.controller.show_frame(ClientProfile)
+        return client
+        #return self.client
+        #self.app = ClientProfile(ClientDatabase, self.client) 
+
+
+
+class ClientProfile(tk.Frame):
+    
+    def __init__(self, parent, controller): 
+        tk.Frame.__init__(self, parent) 
+        title = tk.Label(self, text ="Client Profile", font = LARGEFONT) 
+        title.grid(row = 0, columnspan=2, sticky="ew", padx = 10, pady = 10) 
+
+        ci_sec = tk.Frame(self, bd=2, relief='solid')
         self.cihead=tk.Label(ci_sec, text='Contact Information')
-        self.ci1=tk.Label(ci_sec, text='Name: '+cd['last_name']+', '+cd['first_name'])
-        self.ci2=tk.Label(ci_sec, text='Date of Birth: '+cd['dob'])
-        self.ci3=tk.Label(ci_sec, text='Phone: '+cd['phone'])
-        self.ci4=tk.Label(ci_sec, text='Email: '+cd['email'])
+        self.ci1=tk.Label(ci_sec, text='Name: '+client['last_name']+', '+client['first_name'])
+        self.ci2=tk.Label(ci_sec, text='Date of Birth: '+client['dob'])
+        self.ci3=tk.Label(ci_sec, text='Phone: '+client['phone'])
+        self.ci4=tk.Label(ci_sec, text='Email: '+client['email'])
         
         #ci_sec.pack(side='left')
-        ci_sec.grid(row=0, column=0)
-        self.cihead.pack(side='top', padx=5, pady=5)
+        ci_sec.grid(row=1, column=0, sticky="ns")
+        '''self.cihead.pack(side='top', padx=5, pady=5)
         self.ci1.pack(anchor='w')
         self.ci2.pack(anchor='w')
         self.ci3.pack(anchor='w')
-        self.ci4.pack(anchor='w')
+        self.ci4.pack(anchor='w')'''
+        self.cihead.grid()
+        self.ci1.grid()
+        self.ci2.grid()
+        self.ci3.grid()
+        self.ci4.grid()
         
         
-        pi_sec = tk.Frame()
-        self.pihead=tk.Label(pi_sec, text='Policy Information')
-        self.pi1=tk.Label(pi_sec, text='Company: '+cd['company'])
-        self.pi2=tk.Label(pi_sec, text='Policy #: '+str(cd['policy_num']))
-        self.pi3=tk.Label(pi_sec, text='Effecitve Date: '+cd['eff_date'])
-        self.pi4=tk.Label(pi_sec, text='Experation Date: '+cd['exp_date'])
-        self.pi5=tk.Label(pi_sec, text='Premium: '+cd['premium'])
+        pi_sec = tk.Frame(self, bd=2, relief='solid')
+        self.pihead=tk.Label(pi_sec, text=client['policy_type']+' Policy Information')
+        self.pi1=tk.Label(pi_sec, text='Company: '+client['company'])
+        self.pi2=tk.Label(pi_sec, text='Policy #: '+str(client['policy_num']))
+        self.pi3=tk.Label(pi_sec, text='Effecitve Date: '+client['eff_date'])
+        self.pi4=tk.Label(pi_sec, text='Experation Date: '+client['exp_date'])
+        self.pi5=tk.Label(pi_sec, text='Premium: '+client['premium'])
         
         #pi_sec.pack(side='left', padx=10)
-        pi_sec.grid(row=0, column=1)
-        self.pihead.pack(side='top', padx=5, pady=5)
+        pi_sec.grid(row=1, column=1)
+        '''self.pihead.pack(side='top', padx=5, pady=5)
         self.pi1.pack(anchor='w')
         self.pi2.pack(anchor='w')
         self.pi3.pack(anchor='w')
         self.pi4.pack(anchor='w')
-        self.pi5.pack(anchor='w')
+        self.pi5.pack(anchor='w')'''
+        self.pihead.grid()
+        self.pi1.grid()
+        self.pi2.grid()
+        self.pi3.grid()
+        self.pi4.grid()
+        self.pi5.grid()
         
         
-        notes_sec = tk.Frame()
+        notes_sec = tk.Frame(self)
         self.nehead=tk.Label(notes_sec, text='Notes and Events')
         notes_date = []
         notes_info = []
         for i in range(len(notes)):
             notes_date.append(tk.Label(notes_sec, text=str(notes[i][0])+': '))
-            notes_date[i].grid(row=i, column=0)
+            notes_date[i].grid(row=i, column=0, sticky='w')
             notes_info.append(tk.Label(notes_sec, text=notes[i][1]))
-            notes_info[i].grid(row=i, column=1)
+            notes_info[i].grid(row=i, column=1, stick='w')
         self.nee=tk.Entry(notes_sec)
         
         #notes_sec.pack(anchor='s', fill='x', expand='yes')
-        notes_sec.grid(row=1, columnspan=2, sticky="ew")
+        notes_sec.grid(row=2, columnspan=2, sticky="ew")
         self.nee.grid(row=i+1)
 
         
-        self.root.grid_rowconfigure(1, weight=1)
-        self.root.grid_columnconfigure(1, weight=1)
-        self.root.mainloop()
+        #self.root.grid_rowconfigure(1, weight=1)
+        #self.root.grid_columnconfigure(1, weight=1)
+        #self.root.mainloop()
 
-ClientProfile()
+
+
+# Driver Code 
+app = tkinterApp() 
+app.title('Ariana Insurance')
+app.mainloop() 
+
+
+
+
+
+
+
+#ClientProfile()
 #window=tk.Tk()
 #mywin=ClientProfile(window)
 #window.title('Ariana Insurance')
