@@ -13,6 +13,7 @@ import ast
 from PIL import Image, ImageTk
 from datetime import date
 import json
+import numpy as np
 
 
 
@@ -21,7 +22,8 @@ os.chdir(database_dir)
 
 
 # Import data
-database = pd.read_csv('../test_database.csv')
+database = pd.read_csv('../vFWAM82O - master-book.csv')
+database = database.astype(str)
 
 #client = database.iloc[0]
 #notes_dict = ast.literal_eval(client['notes'])
@@ -82,12 +84,12 @@ class StartPage(tk.Frame):
 		tk.Frame.__init__(self, parent) 
 		
 		
-		#image = Image.open("../logo.png")
-		#photo = ImageTk.PhotoImage(image)
+		image = Image.open("../logo.png")
+		photo = ImageTk.PhotoImage(image)
 		
-		#label = tk.Label(self, image = photo)
-		#label.image = photo
-		#label.grid(row=0)
+		label = tk.Label(self, image = photo)
+		label.image = photo
+		label.grid(row=0)
 
 
 		## button to show frame 2 with text layout2 
@@ -114,12 +116,16 @@ class ClientDatabase(tk.Frame):
 			self.db_sel = i
 			self.client = database.iloc[i]
 			clients_cell.append(tk.Label(self, 
-										 text=self.client['last_name']+', '+self.client['first_name']))
+										 text=self.client['Card Name']))
 			clients_cell[i].grid(row=i+1, column=0)
-			clients_pols.append(tk.Button(self, text=self.client['policy_type'],
+			clients_pols.append(tk.Button(self, text=self.client['Type'],
 										  command = lambda: self.load_client_info(self.client)))
 			clients_pols[i].grid(row=i+1, column=1)
-			notes_dict = ast.literal_eval(self.client['notes'])
+			#if np.isnan(self.client['Notes']):
+			if self.client['Notes'] == 'nan':
+				notes_dict = {}
+			else:
+				notes_dict = ast.literal_eval(self.client['Notes'])
 			self.notes = notes_dict
 		
 	def load_client_info(self, client):
@@ -151,26 +157,26 @@ class ClientProfile(tk.Frame):
 
 		ci_sec = tk.Frame(self, bd=2, relief='solid')
 		self.cihead=tk.Label(ci_sec, text='Contact Information')
-		self.ci1=tk.Label(ci_sec, text='Name: '+self.client['last_name']+', '+self.client['first_name'])
-		self.ci2=tk.Label(ci_sec, text='Date of Birth: '+self.client['dob'])
-		self.ci3=tk.Label(ci_sec, text='Phone: '+self.client['phone'])
-		self.ci4=tk.Label(ci_sec, text='Email: '+self.client['email'])
+		self.ci1=tk.Label(ci_sec, text='Name: '+self.client['Card Name'])
+		#self.ci2=tk.Label(ci_sec, text='Date of Birth: '+self.client['dob'])
+		self.ci3=tk.Label(ci_sec, text='Phone: '+str(self.client['Phone']))
+		self.ci4=tk.Label(ci_sec, text='Email: '+str(self.client['Email']))
 		
 		ci_sec.grid(row=1, column=0, sticky="ns")
 		self.cihead.grid()
 		self.ci1.grid()
-		self.ci2.grid()
+		#self.ci2.grid()
 		self.ci3.grid()
 		self.ci4.grid()
 		
 		
 		pi_sec = tk.Frame(self, bd=2, relief='solid')
-		self.pihead=tk.Label(pi_sec, text=self.client['policy_type']+' Policy Information')
-		self.pi1=tk.Label(pi_sec, text='Company: '+self.client['company'])
-		self.pi2=tk.Label(pi_sec, text='Policy #: '+str(self.client['policy_num']))
-		self.pi3=tk.Label(pi_sec, text='Effecitve Date: '+self.client['eff_date'])
-		self.pi4=tk.Label(pi_sec, text='Experation Date: '+self.client['exp_date'])
-		self.pi5=tk.Label(pi_sec, text='Premium: '+self.client['premium'])
+		self.pihead=tk.Label(pi_sec, text=self.client['Type']+' Policy Information')
+		self.pi1=tk.Label(pi_sec, text='Company: '+self.client['Company'])
+		self.pi2=tk.Label(pi_sec, text='Policy #: '+str(self.client['Policy #']))
+		self.pi3=tk.Label(pi_sec, text='Effecitve Date: '+self.client['Effective Date'])
+		self.pi4=tk.Label(pi_sec, text='Experation Date: '+self.client['Expiration Date'])
+		self.pi5=tk.Label(pi_sec, text='Premium: '+self.client['Premium'])
 		
 		pi_sec.grid(row=1, column=1)
 		self.pihead.grid()
@@ -188,6 +194,7 @@ class ClientProfile(tk.Frame):
 		#notes = self.client['notes']
 		temp_dates = list(self.notes.keys())
 		temp_notes = list(self.notes.values())
+		i = 0
 		for i in range(len(self.notes)):
 			#notes_date.append(tk.Label(notes_sec, text=str(self.notes[i][0])+': '))
 			notes_date.append(tk.Label(notes_sec, text=str(temp_dates[i])))
@@ -209,9 +216,8 @@ class ClientProfile(tk.Frame):
 		today = date.today()
 		d1 = today.strftime("%m/%d/%Y")
 		self.notes[d1] = self.response_entries[0].get()
-		#self.notes.append([d1,self.response_entries[0].get()])
-		database.loc[self.db_sel, ('notes')] = json.dumps(self.notes)
-		print(database.iloc[self.db_sel]['notes'])
+		database.loc[self.db_sel, ('Notes')] = json.dumps(self.notes)
+		print(database.iloc[self.db_sel]['Notes'])
 		
 		database.to_csv('../test_database.csv', index=False)
 		
